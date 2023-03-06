@@ -1,17 +1,41 @@
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
-import 'package:pet_tracker/my_app.dart';
-import 'package:pet_tracker/pages/map_socket.dart';
-import 'package:pet_tracker/pages/tracking_page.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_config/flutter_config.dart';
+import 'package:pet_tracker/widgets/auth_check.dart';
+import 'package:pet_tracker/repositories/pets_repository.dart';
+import 'package:pet_tracker/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-IO.Socket socket = IO.io('http://d89f-200-133-3-253.sa.ngrot.io/');
-void main() {
-  runApp(MaterialApp(
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterConfig.loadEnvVariables();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => AuthService()),
+      ChangeNotifierProvider<PetsRepository>(
+        create: (_) => PetsRepository(),
+      )
+    ],
+    child: App(),
+  ));
+}
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Pet Tracking',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: MapSocket()));
+      home: AuthCheck(),
+    );
+  }
 }
